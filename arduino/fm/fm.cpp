@@ -15,6 +15,21 @@ fm::fm(uint8_t btn_pin, uint8_t led_pin,uint8_t id){
   pinMode(_led_pin,OUTPUT);
 }
 
+void fm::led_control(bool isOn){
+  if(isOn){
+    digitalWrite(_led_pin,HIGH);
+  }else{
+    digitalWrite(_led_pin,LOW);
+  }
+}
+
+static void fm::restart(){
+  _index=0;
+  for (int i=0; i<MAX_SEQUENCE_SIZE-1; i++) {
+    fm::setNextSequence();
+  }
+}
+
 uint8_t fm::getId(){
   return _id;
 }
@@ -26,11 +41,7 @@ static void fm::setNextSequence(){
   }
 }
 
-static void fm::restart(){
-  _index=0;
-}
-
-static uint32_t fm::getSequence(uint8_t i){
+static uint8_t fm::getSequence(uint8_t i){
   if(i<MAX_SEQUENCE_SIZE)
     return _sequence_numbers[i];
   return 0;

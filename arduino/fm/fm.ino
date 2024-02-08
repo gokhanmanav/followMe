@@ -13,17 +13,62 @@
 #define LED_3 9
 #define LED_4 10
 
-//Variable
-fm fm1(BTN_1,LED_1,1);
-fm fm2(BTN_2,LED_2,2);
-fm fm3(BTN_3,LED_3,3);
-fm fm4(BTN_4,LED_4,4);
-/* Main Code */
-void setup(){
+#define ID_1 1
+#define ID_2 2
+#define ID_3 3
+#define ID_4 4
 
+//Variable
+fm fm1(BTN_1,LED_1,ID_1);
+fm fm2(BTN_2,LED_2,ID_2);
+fm fm3(BTN_3,LED_3,ID_3);
+fm fm4(BTN_4,LED_4,ID_4);
+/* Main Code */
+int i=1;
+uint8_t selected_led;
+void setup(){
+  Serial.begin(9600);
+  Serial.println("FollowMe");
+  randomSeed(analogRead(0));
+  fm::restart();
 }
 void loop(){
-
+  if(i<MAX_SEQUENCE_SIZE){
+    selected_led = fm::getSequence(i-1);
+    i++;
+    Serial.print(selected_led);
+    Serial.print(" ");
+    switch (selected_led) {
+      case ID_1:
+        fm1.led_control(true);
+        fm2.led_control(false);
+        fm3.led_control(false);
+        fm4.led_control(false);
+      break;
+      case ID_2:
+        fm1.led_control(false);
+        fm2.led_control(true);
+        fm3.led_control(false);
+        fm4.led_control(false);
+      break;
+      case ID_3:
+        fm1.led_control(false);
+        fm2.led_control(false);
+        fm3.led_control(true);
+        fm4.led_control(false);
+      break;
+      case ID_4:
+        fm1.led_control(false);
+        fm2.led_control(false);
+        fm3.led_control(false);
+        fm4.led_control(true);
+      break;
+    }
+    delay(1000);
+  }else{
+    i=1;
+    Serial.println();
+  }
 }
 /* Main Code */
 
