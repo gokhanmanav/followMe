@@ -23,6 +23,14 @@ void fm::led_control(bool isOn){
   }
 }
 
+bool fm::getButtonVal(){ 
+  if(digitalRead(_btn_pin)==LOW){
+    return true;
+  }else{
+    return false;
+  }
+}
+
 static void fm::restart(){
   _index=0;
   for (int i=0; i<MAX_SEQUENCE_SIZE-1; i++) {

@@ -1,7 +1,7 @@
 #ifndef _FM_H
 #include <stdint.h>
 #include <Arduino.h>
-#define MAX_SEQUENCE_SIZE 5
+#define MAX_SEQUENCE_SIZE 100
 class fm{
   public:
     static void restart();
@@ -10,7 +10,7 @@ class fm{
 
     fm(uint8_t btn_pin, uint8_t led_pin, uint8_t id);
     void led_control(bool isOn);
-
+    bool getButtonVal();
     uint8_t getId();
   private:
     uint8_t _id;
