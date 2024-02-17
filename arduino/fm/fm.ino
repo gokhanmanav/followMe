@@ -13,6 +13,8 @@
 #define LED_3 9
 #define LED_4 10
 
+#define BUZZER  
+
 #define ID_1 1
 #define ID_2 2
 #define ID_3 3
