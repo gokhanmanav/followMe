@@ -1,7 +1,7 @@
 #ifndef _FM_H
 #include <stdint.h>
 #include <Arduino.h>
-#define MAX_SEQUENCE_SIZE 100
+#define MAX_SEQUENCE_SIZE 1000
 class fm{
   public:
     static void restart();
