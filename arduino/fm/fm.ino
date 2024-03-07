@@ -2,7 +2,13 @@
   * This project's aim is to develop a randomize game for childs.
 */
 #include "fm.h"
-#include "pitches.h"
+#include "pitches.h" // Melodi için
+// Nokia 5110 GLCD Ekran için Adafruid Lib. 2.0.3
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_PCD8544.h>
+// EEPROM
+#include <EEPROM.h>
 
 // notes in the melody:
 int melody[] = {
@@ -19,6 +25,13 @@ int noteDurations[] = {
 int noteDurations2[] = {
  6, 6, 6, 1, 1, 6, 6, 6, 1, 2, 6, 6, 6, 1, 2, 6, 6, 6, 1
 };
+
+#define GLCD_CLK 10
+#define GLCD_DIN A4
+#define GLCD_DC 12 
+#define GLCD_CS A2
+#define GLCD_RST 13
+#define GLCD_BL A3
 
 #define BTN_1 7
 #define BTN_2 8
@@ -40,25 +53,87 @@ int noteDurations2[] = {
 #define ID_3 3
 #define ID_4 4
 
+#define E2PROM_ADR_SCOR 10
+
 //Variable
 fm fm1(BTN_1, LED_1, ID_1);
 fm fm2(BTN_2, LED_2, ID_2);
 fm fm3(BTN_3, LED_3, ID_3);
 fm fm4(BTN_4, LED_4, ID_4);
+
+// GLCD
+Adafruit_PCD8544 display = Adafruit_PCD8544(GLCD_CLK, GLCD_DIN, GLCD_DC, GLCD_CS, GLCD_RST);
 /* Main Code */
 int i, last_i;
 uint8_t selected_led;
+uint16_t best_score = 0;
+uint16_t score=0;
 void setup() {
+  EEPROM.get(E2PROM_ADR_SCOR,best_score);
+  if(best_score > MAX_SEQUENCE_SIZE){
+    best_score = 0;
+    EEPROM.put(E2PROM_ADR_SCOR,best_score);
+  }
+  //IO
+  digitalWrite(GLCD_BL,LOW);
+  pinMode(GLCD_BL,OUTPUT);
+  
+  //GLCD
+  display.begin();
+  display.setContrast(50);
+  display.clearDisplay();
+  display.display();
+
   randomSeed(analogRead(0));
   digitalWrite(BUZZER,LOW);
   pinMode(BUZZER,OUTPUT);
   newGame();
 }
+void writeGLCDBest(){
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.setCursor(15,5);
+  display.print("Yeni Skor");
+
+  display.setTextSize(3);
+  display.setCursor(15,20);
+  display.print(best_score);
+
+  display.display();
+}
+void writeGLCD(){
+  display.clearDisplay();
+
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.setCursor(10,5);
+  display.print("Puan - Skor");
+
+  display.drawLine(0,15,84,15,BLACK);
+
+  display.setTextSize(2);
+  display.setCursor(0,20);
+  display.print(score);
+  display.display();
+
+  display.setTextSize(1);
+  display.setCursor(40,20);
+  display.print("-");
+
+  display.setTextSize(2);
+  display.setCursor(48,20);
+  display.print(best_score);
+  display.display();
+}
+
 void newGame(){
+  score=0;
   fm::restart();
   i = 1;
   last_i = 2;
   buzzer_play(BZR_TWO_BIP);
+  writeGLCD();
   show();
 }
 void playMelodyWin(){
@@ -180,6 +255,8 @@ void loop() {
       last_i++;
       i = 1;
       delay(1000);
+      score++;
+      writeGLCD();
       show();
     } else {
       // Win Game
@@ -201,7 +278,15 @@ void loop() {
     }
   } else {
     // Game Over
-    playMelodyFinish();
+    if(score>best_score){
+      best_score = score;
+      EEPROM.put(E2PROM_ADR_SCOR,best_score);
+      writeGLCDBest();
+      // Win Game
+      playMelodyWin();
+    }else{
+      playMelodyFinish();
+    }
     while (!fm4.getButtonVal() && !fm3.getButtonVal() && !fm2.getButtonVal() && !fm1.getButtonVal()){
       fm1.led_control(true);
       delay(200);
@@ -210,11 +295,13 @@ void loop() {
       delay(200);
       fm2.led_control(false);
       fm3.led_control(true);
+      display.invertDisplay(true);
       delay(200);
       fm3.led_control(false);
       fm4.led_control(true);
       delay(200);
       fm4.led_control(false);
+      display.invertDisplay(false);
     }
     while (fm4.getButtonVal() || fm3.getButtonVal() || fm2.getButtonVal() || fm1.getButtonVal())delay(100);
     newGame();
